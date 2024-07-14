@@ -1,0 +1,26 @@
+services:
+  app:
+    build: .
+    ports:
+      - '${APP_PORT:-3000}:3000'
+
+    volumes:
+      - ./:/app
+    environment:
+      - NODE_ENV=development
+      - PORT=${APP_PORT:-3000}
+    depends_on:
+      - db
+  db:
+    image: postgres:16-alpine
+    ports:
+      - '${DB_PORT:-5432}:5432'
+    environment:
+      - POSTGRES_USER=${DATABASE_USER:-postgres}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-postgres}
+      - POSTGRES_DB=postgres=${DATABASE_NAME:-postgres}
+    volumes:
+        - db-data:/var/lib/postgresql/data
+volumes:
+    db-data:
+
