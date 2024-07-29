@@ -1,4 +1,9 @@
-import { IsEmail, IsNotEmpty, IsOptional } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsStrongPassword,
+} from 'class-validator';
 import { Match } from '../../common/validators/match.decorator';
 
 export class RegisterRequestDto {
@@ -12,6 +17,16 @@ export class RegisterRequestDto {
   email: string;
 
   @IsNotEmpty({ message: 'Password is required' })
+  @IsStrongPassword(
+    {
+      minUppercase: 1,
+      minLowercase: 1,
+      minNumbers: 1,
+      minLength: 8,
+      minSymbols: 0,
+    },
+    { message: 'Password is too weak' },
+  )
   password: string;
 
   @IsNotEmpty({ message: 'Password confirmation is required' })

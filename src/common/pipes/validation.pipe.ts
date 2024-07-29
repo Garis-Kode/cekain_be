@@ -12,14 +12,13 @@ export function customValidationPipe(options?: ValidationPipeOptions) {
     errorHttpStatusCode: 422,
     stopAtFirstError: true,
     exceptionFactory: (errors: ValidationError[]) => {
-      const messages = errors.map((error) => ({
-        property: error.property,
-        constraints: Object.values(error.constraints),
-      }));
       return new UnprocessableEntityException({
+        status: 'error',
         message: 'Validation failed',
-        errors: messages,
-        statusCode: 422,
+        detail: errors.map((error) => ({
+          field: error.property,
+          constraints: Object.values(error.constraints)[0],
+        })),
       });
     },
     ...options,

@@ -1,5 +1,5 @@
 import { Column, BeforeInsert, Entity } from 'typeorm';
-import { v4 as uuidv4 } from 'uuid';
+import { v7 as uuidv7 } from 'uuid';
 import { BaseEntity } from '../../common/entities/base.entity';
 
 @Entity()
@@ -13,7 +13,7 @@ export class User extends BaseEntity {
   @Column({ name: 'last_name', nullable: true })
   lastName: string;
 
-  @Column({ name: 'email' })
+  @Column({ name: 'email', unique: true })
   email: string;
 
   @Column({ name: 'password', nullable: true })
@@ -28,7 +28,7 @@ export class User extends BaseEntity {
   @Column({ name: 'email_verified_at', nullable: true })
   emailVerifiedAt: Date;
 
-  @Column({ name: 'is_active' })
+  @Column({ name: 'is_active', default: true })
   isActive: boolean;
 
   @Column({ name: 'profile_picture_path', nullable: true })
@@ -36,6 +36,6 @@ export class User extends BaseEntity {
 
   @BeforeInsert()
   async generateUuid() {
-    this.userUuid = uuidv4();
+    this.userUuid = uuidv7();
   }
 }
