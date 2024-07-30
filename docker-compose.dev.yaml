@@ -1,9 +1,11 @@
 services:
   app:
-    build: .
+    build:
+        context: .
+        dockerfile: Dockerfile.dev
     ports:
       - '${APP_PORT:-3000}:3000'
-
+    command: sh -c "npm install && npm run start:dev"
     volumes:
       - ./:/app
     environment:
@@ -23,4 +25,3 @@ services:
         - db-data:/var/lib/postgresql/data
 volumes:
     db-data:
-

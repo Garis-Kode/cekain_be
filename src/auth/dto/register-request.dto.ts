@@ -1,16 +1,18 @@
 import {
   IsEmail,
   IsNotEmpty,
-  IsOptional,
+  IsOptional, IsString,
   IsStrongPassword,
 } from 'class-validator';
 import { Match } from '../../common/validators/match.decorator';
 
 export class RegisterRequestDto {
   @IsNotEmpty({ message: 'First name is required' })
+  @IsString()
   firstName: string;
 
   @IsOptional()
+  @IsString()
   lastName?: string;
 
   @IsEmail({}, { message: 'Invalid email format' })

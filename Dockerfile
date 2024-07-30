@@ -1,15 +1,24 @@
-FROM node:20-alpine
+FROM node:20-alpine as build
 
-WORKDIR /app
+WORKDIR: /app
 
 COPY package.json /app
 
 RUN npm install
 
-RUN npm i -g @nestjs/cli
-
 COPY . .
+
+RUN npm run build
+
+FROM node:20-alpine
+
+WORKDIR: /app
+
+COPY --from=build /app/dist ./dist
+COPY --from=builder /app/package*.json ./
+
+RUN npm install --only=production
 
 EXPOSE 3000
 
-CMD sh -c '[ -d "node_modules" ] && npm run start:dev || (npm ci && npm run start:dev)'
+CMD ["npm", "run", "start:prod"]

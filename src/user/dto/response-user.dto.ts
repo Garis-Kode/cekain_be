@@ -11,12 +11,6 @@ export class ResponseUserDto {
   lastName: string | null;
 
   @Expose()
-  lastLoginAt: Date | null;
-
-  @Expose()
-  lastLoginIp: string | null;
-
-  @Expose()
   emailVerifiedAt: Date | null;
 
   @Expose()
