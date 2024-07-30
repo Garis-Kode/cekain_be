@@ -1,6 +1,6 @@
 FROM node:20-alpine as build
 
-WORKDIR: /app
+WORKDIR /app
 
 COPY package.json /app
 
@@ -12,10 +12,10 @@ RUN npm run build
 
 FROM node:20-alpine
 
-WORKDIR: /app
+WORKDIR /app
 
 COPY --from=build /app/dist ./dist
-COPY --from=builder /app/package*.json ./
+COPY --from=build /app/package*.json ./
 
 RUN npm install --only=production
 
