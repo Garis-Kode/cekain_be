@@ -5,6 +5,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - '${APP_PORT:-3000}:3000'
+    env_file:
+      - .env
     environment:
       - NODE_ENV=staging
     depends_on:
