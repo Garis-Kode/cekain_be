@@ -11,6 +11,7 @@ import { RegisterRequestDto } from './dto/register-request.dto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { LoginRequestDto } from './dto/login-request.dto';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class AuthService {
@@ -38,6 +39,11 @@ export class AuthService {
     return user;
   }
 
+  /**
+   * Register a new user.
+   *
+   * @param registerRequestDto
+   */
   async register(registerRequestDto: RegisterRequestDto) {
     const user = await this.userRepository.findOne({
       where: { email: registerRequestDto.email },
@@ -60,7 +66,13 @@ export class AuthService {
     return newUser;
   }
 
-  public async login(loginRequestDto: LoginRequestDto) {
+  /**
+   * Log the user in.
+   *
+   * @param loginRequestDto
+   * @param req
+   */
+  public async login(loginRequestDto: LoginRequestDto, req: any) {
     const user = await this.validateUser(
       loginRequestDto.email,
       loginRequestDto.password,
@@ -69,21 +81,25 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Your password or email is incorrect');
     }
+
+    user.lastLoginIp = req.ip;
+    user.lastLoginAt = DateTime.now().toJSDate();
+    await this.userRepository.save(user);
+
     return await this.responseWithToken(user);
   }
 
-  public async refresh(refreshToken: string) {
-    const payload = await this.jwtService.verifyAsync(refreshToken, {
-      secret: this.configService.getOrThrow('JWT_REFRESH_SECRET'),
-    });
-
-    const user = await this.userRepository.findOne(payload.sub);
-
-    return this.responseWithToken(user);
+  /**
+   * Refresh the access token.
+   *
+   * @param user
+   */
+  public async refresh(user: UserEntity) {
+    return await this.generateAccessToken(user);
   }
 
   /**
-   * Generate a new access token and refresh token
+   * Response with access and refresh token.
    *
    * @param user
    * @private
@@ -91,15 +107,36 @@ export class AuthService {
   private async responseWithToken(
     user: UserEntity,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    const payload = { email: user.email, sub: user.id };
-    const accessToken = await this.jwtService.signAsync(payload, {
-      expiresIn: '1h',
-      secret: this.configService.getOrThrow('JWT_ACCESS_SECRET'),
-    });
-    const refreshToken = await this.jwtService.signAsync(payload, {
+    const accessToken = await this.generateAccessToken(user);
+    const refreshToken = await this.generateRefreshToken(user);
+    return { accessToken, refreshToken };
+  }
+
+  /**
+   * Generate a new refresh token.
+   *
+   * @param user
+   * @private
+   */
+  private async generateRefreshToken(user: UserEntity) {
+    const payload = { sub: user.id, email: user.email };
+    return this.jwtService.signAsync(payload, {
       expiresIn: '7d',
       secret: this.configService.getOrThrow('JWT_REFRESH_SECRET'),
     });
-    return { accessToken, refreshToken };
+  }
+
+  /**
+   * Generate a new access token.
+   *
+   * @param user
+   * @private
+   */
+  private async generateAccessToken(user: UserEntity) {
+    const payload = { sub: user.id, email: user.email };
+    return this.jwtService.signAsync(payload, {
+      expiresIn: '1h',
+      secret: this.configService.getOrThrow('JWT_ACCESS_SECRET'),
+    });
   }
 }

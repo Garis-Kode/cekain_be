@@ -1,23 +1,31 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { PassportStrategy } from '@nestjs/passport';
 import { UserService } from '../../user/user.service';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class RefreshTokenStrategy extends PassportStrategy(
+  Strategy,
+  'refresh-token',
+) {
   constructor(
     private configService: ConfigService,
     private userService: UserService,
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromBodyField('refreshToken'),
       ignoreExpiration: false,
-      secretOrKey: configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
+      secretOrKey: configService.getOrThrow('JWT_REFRESH_SECRET'),
     });
   }
 
-  async validate(payload: any) {
+  /**
+   * Validate the user.
+   *
+   * @param payload
+   */
+  public async validate(payload: any) {
     const user = await this.userService.findOne(payload.sub);
     if (!user) throw new UnauthorizedException('User not found');
     return user;

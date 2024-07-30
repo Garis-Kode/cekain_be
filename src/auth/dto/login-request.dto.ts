@@ -6,4 +6,8 @@ export class LoginRequestDto {
 
   @IsNotEmpty({ message: 'Password is required' })
   password: string;
+
+  constructor(partial: Partial<LoginRequestDto>) {
+    Object.assign(this, partial);
+  }
 }

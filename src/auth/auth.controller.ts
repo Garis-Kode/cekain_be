@@ -6,6 +6,7 @@ import {
   HttpStatus,
   HttpCode,
   Get,
+  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterRequestDto } from './dto/register-request.dto';
@@ -33,14 +34,16 @@ export class AuthController {
   }
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  async login(@Body() loginRequestDto: LoginRequestDto) {
-    return await this.authService.login(loginRequestDto);
+  async login(@Body() loginRequestDto: LoginRequestDto, @Req() req: any) {
+    return await this.authService.login(loginRequestDto, req);
   }
 
-  // refresh
-  @Post('refresh')
-  @UseGuards(AuthGuard('refresh'))
-  async refresh(@Body() refresh: any) {
-    return await this.authService.refresh(refresh.refreshToken);
+  @Post('refresh-token')
+  @UseGuards(AuthGuard('refresh-token'))
+  @HttpCode(HttpStatus.OK)
+  async refresh(@User() user: UserEntity) {
+    return {
+      accessToken: await this.authService.refresh(user),
+    };
   }
 }
